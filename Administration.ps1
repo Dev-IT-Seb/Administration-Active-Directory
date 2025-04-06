@@ -19,10 +19,15 @@ PowerShell.exe -WindowStyle Hidden -File
 #######################################################################################################################################################################
 Clear-Host
 #######################################################################################################################################################################
+###
+ ###Ajouter votre domaine
+$Domaine = "mondomaine.ad"
+$UO = "OU=Instituts-Ecoles-Departements,DC=afpicl,DC=lan" 
+$Server = "ad.enterprise"
+#######################################################################################################################################################################
                                                                               # FENETRE MENU #
 #######################################################################################################################################################################
 #region FENETRE MENU
-
 #MENU
 $form = New-Object Windows.Forms.Form
 $form.Add_KeyDown({ if($_.KeyCode -eq "Escape") { $form.Close() } }) 
@@ -926,7 +931,7 @@ function INFORMATIONsUSERS {
 
 Function Administratif{
        
-        $usersad = Get-ADUser -Filter * -SearchBase "OU=Utilisateurs,OU=AGVE,DC=ad,DC=interne" -Server ad.interne -Properties * | Sort-Object 
+        $usersad = Get-ADUser -Filter * -SearchBase $UO -Server $Server -Properties * | Sort-Object 
          
         $usersad | ForEach {
                   
@@ -968,7 +973,7 @@ Function Administratif{
 
 Function Personnel {
         
-        $usersad = Get-ADUser -Filter * -SearchBase "OU=Instituts-Ecoles-Departements,DC=afpicl,DC=lan" -Server afpicl.lan -Properties * | Sort-Object 
+        $usersad = Get-ADUser -Filter * -SearchBase $UO -Server $Domaine -Properties * | Sort-Object 
          
         $usersad | ForEach {
                   
@@ -1011,7 +1016,7 @@ Function Personnel {
 
 Function SERVICEINFO {
         
-        $usersad = Get-ADUser -Filter * -SearchBase "OU=Service Informatique,DC=afpicl,DC=lan" -Server afpicl.lan -Properties * | Sort-Object 
+        $usersad = Get-ADUser -Filter * -SearchBase $UO -Server $Domaine -Properties * | Sort-Object 
          
         $usersad | ForEach {
  
@@ -1051,11 +1056,10 @@ Function SERVICEINFO {
 
 }
 
-
 Function LOCKEDADMIN_PROF_PARTEN {         
 
 
-        $Lockedadmin = Search-ADAccount -AccountExpired -Server afpicl.lan | Where {($_.ObjectClass -eq 'user')} | Get-ADUser -Properties * | Sort-Object 
+        $Lockedadmin = Search-ADAccount -AccountExpired -Server $Domaine | Where {($_.ObjectClass -eq 'user')} | Get-ADUser -Properties * | Sort-Object 
      
         $Lockedadmin | ForEach {
  
@@ -1124,7 +1128,7 @@ Function BARREDERECHERCHE {
    
    elseif($TextboxADUuser12.Text -eq $TextboxADUuser12.Text){
        
-        $usersad = Get-ADUser -Filter {surname -eq $TextboxADUuser12.Text -or GivenName -eq $TextboxADUuser12.Text} -server "afpicl.lan" -Properties *
+        $usersad = Get-ADUser -Filter {surname -eq $TextboxADUuser12.Text -or GivenName -eq $TextboxADUuser12.Text} -server $Domaine -Properties *
          
         $usersad | ForEach {
        
@@ -1192,16 +1196,12 @@ Function MATRICULE {
     [System.Windows.Forms.MessageBoxIcon]::Error) 
 }
 
-#######################################################
 #VERIFICATION VALEUR
   elseif((Get-ADUser -filter * -Properties EmployeeID | Select-Object EmployeeID).EmployeeID -eq $($TextboxModifMatricule2.Text)){    
     [System.Windows.Forms.MessageBox]::Show("Ce numéro de matricule est déjà affecté à un autre utilisateur.`nVeuillez-vous reporter sur la fiche utilisateur","ERREUR MATRICULE",
     [System.Windows.Forms.MessageBoxButtons]::OK,
     [System.Windows.Forms.MessageBoxIcon]::Error)
 }
-
-#######################################################
-
    elseif($TextboxModifMatricule2.Text -match "^\d+$"){
    Set-ADUser -Identity "$($TextboxModifMatricule1.Text)" -EmployeeID "$($TextboxModifMatricule2.Text)" -WhatIf
     [System.Windows.Forms.MessageBox]::Show("Le matricule a été modifié avec succès.`nPour visualiser le changement, relancer la recherche de votre utilisateur.","SUCCES MATRICULE",
@@ -1209,7 +1209,6 @@ Function MATRICULE {
     [System.Windows.Forms.MessageBoxIcon]::Information) 
 
 }}
-
 
 Function MODIFSDA {
   
@@ -1234,15 +1233,12 @@ Function MODIFSDA {
     [System.Windows.Forms.MessageBoxIcon]::Error)
 }
 
-#######################################################
 #VERIFICATION VALEUR
   elseif((Get-ADUser -filter * -Properties OfficePhone | Select-Object OfficePhone).OfficePhone -eq $($TextboxModifSDA2.Text)){    
     [System.Windows.Forms.MessageBox]::Show("Il existe déja une SDA affecté à un utilsateur.","ERREUR SDA",
     [System.Windows.Forms.MessageBoxButtons]::OK,
     [System.Windows.Forms.MessageBoxIcon]::Error)
 }
-#######################################################
-
   elseif($TextboxModifSDA2.Text -match "^\d+$"){
     Set-ADUser -Identity "$($TextboxModifSDA1.Text)" -OfficePhone "$($TextboxModifSDA2.Text)"    
     [System.Windows.Forms.MessageBox]::Show("Le numéro de téléphone a été modifié avec succès.`nPour visualiser le changement, relancer la recherche de votre utilisateur.","SUCCES SDA",
@@ -1292,22 +1288,12 @@ Function MODIFEXTENSION {
 
 #############################################    
 
-
 Function COMPTEEXPIRATION {
-
-#DATE EXPIRATION
-#Set-ADAccountExpiration -Identity PattiFu -DateTime "10/18/2008"
-
-#Activer un compte
-#Enable-ADAccount -Identity "schatel" 
-
-
   If($ModifDateExpiration1.Text -eq ""){
     [System.Windows.Forms.MessageBox]::Show("Aucun utilisateur séléctionné.`nVeuillez relancer votre recherche","Modification date d'expiration",
     [System.Windows.Forms.MessageBoxButtons]::OK,
     [System.Windows.Forms.MessageBoxIcon]::Error) 
   }
-
 }
 
 Function ACTIVATIONCOMPTE {
@@ -1343,19 +1329,15 @@ Function DESACTIVATIONCOMPTE {
 }
 
 Function AJOUTBAL {
-
-    [System.Windows.Forms.MessageBox]::Show("Bientôt disponible...","Ajouter Boite mails",
-    [System.Windows.Forms.MessageBoxButtons]::OK,
-    [System.Windows.Forms.MessageBoxIcon]::Information) 
-
+  [System.Windows.Forms.MessageBox]::Show("Bientôt disponible...","Ajouter Boite mails",
+  [System.Windows.Forms.MessageBoxButtons]::OK,
+  [System.Windows.Forms.MessageBoxIcon]::Information) 
 }
 
 Function AJOUTVPN {
-
-    [System.Windows.Forms.MessageBox]::Show("Bientôt disponible...","Ajouter VPN",
-    [System.Windows.Forms.MessageBoxButtons]::OK,
-    [System.Windows.Forms.MessageBoxIcon]::Information) 
-
+  [System.Windows.Forms.MessageBox]::Show("Bientôt disponible...","Ajouter VPN",
+  [System.Windows.Forms.MessageBoxButtons]::OK,
+  [System.Windows.Forms.MessageBoxIcon]::Information) 
 }
 
 #endregion Functions
@@ -1406,7 +1388,7 @@ Function AJOUTVPN {
     
     #COMPTE "ETAT COMPTE"
     $ListViewADuser.add_Click({
-    $test = (Get-aduser -Identity ($TextboxADUuser7.Text) -Server afpicl.lan -Properties Enabled | Select-Object Enabled).enabled
+    $test = (Get-aduser -Identity ($TextboxADUuser7.Text) -Server $Domaine -Properties Enabled | Select-Object Enabled).enabled
 
     if ($test -match $true){
     $TextboxADUuser13.Text = "Activé"
@@ -1594,11 +1576,9 @@ $FORM_TEL.ShowDialog()
 #region INSTALLATION LOGICIEL
 
 function INSTALLSOFTWARE {
-
-    [System.Windows.Forms.MessageBox]::Show("En cours de construction...","Installation d'un logiciel",
-    [System.Windows.Forms.MessageBoxButtons]::OK,
-    [System.Windows.Forms.MessageBoxIcon]::Information)
-
+  [System.Windows.Forms.MessageBox]::Show("En cours de construction...","Installation d'un logiciel",
+  [System.Windows.Forms.MessageBoxButtons]::OK,
+  [System.Windows.Forms.MessageBoxIcon]::Information)
 }
 #endregion
 #######################################################################################################################################################################
@@ -1607,10 +1587,9 @@ function INSTALLSOFTWARE {
 #region USbBOOTABLE
 
 function USbBOOTABLE {
-
-    [System.Windows.Forms.MessageBox]::Show("En cours de construction...","Création d'une clé USB BOOTABLE",
-    [System.Windows.Forms.MessageBoxButtons]::OK,
-    [System.Windows.Forms.MessageBoxIcon]::Information)
+  [System.Windows.Forms.MessageBox]::Show("En cours de construction...","Création d'une clé USB BOOTABLE",
+  [System.Windows.Forms.MessageBoxButtons]::OK,
+  [System.Windows.Forms.MessageBoxIcon]::Information)
 }
 #endregion
 #######################################################################################################################################################################
@@ -1619,11 +1598,9 @@ function USbBOOTABLE {
 #region DEPLACEMENT ORDINATEUR 
 
 function DeplacementpcDOMAIN {
-   
-    [System.Windows.Forms.MessageBox]::Show("En cours de construction...","Déplacer un ordinateur (Active Directory)",
-    [System.Windows.Forms.MessageBoxButtons]::OK,
-    [System.Windows.Forms.MessageBoxIcon]::Information)
-
+  [System.Windows.Forms.MessageBox]::Show("En cours de construction...","Déplacer un ordinateur (Active Directory)",
+  [System.Windows.Forms.MessageBoxButtons]::OK,
+  [System.Windows.Forms.MessageBoxIcon]::Information)
 }
 #endregion 
 ######################################################################################################################################################################
@@ -1631,7 +1608,6 @@ function DeplacementpcDOMAIN {
 ######################################################################################################################################################################
 
 #region BUTTONS MENU
-
 #BOUTON VALIDER (MENU)
 $button_valider = New-Object System.Windows.Forms.Button
 $button_valider.Text = "Valider"
